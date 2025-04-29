@@ -1,0 +1,76 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'maven-publish'
+}
+
+group = 'com.linkedout'
+version = '0.0.1'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+	withJavadocJar()
+	withSourcesJar()
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Javadoc).configureEach {
+	options.addStringOption('Xdoclint:none', '-quiet')
+	failOnError = false  // javadoc 오류가 있어도 빌드가 실패하지 않도록 설정
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+
+			// 오류 무시 설정 추가
+			suppressPomMetadataWarningsFor('runtimeElements')
+
+			// POM 의존성 보완
+			versionMapping {
+				usage('java-api') {
+					fromResolutionOf('runtimeClasspath')
+				}
+				usage('java-runtime') {
+					fromResolutionResult()
+				}
+			}
+
+			// 선택사항: 생성할 POM 파일 수정
+			pom {
+				name = 'LinkedOut Common Library'
+				description = 'Common DTOs, models, and types for LinkedOut microservices'
+			}
+		}
+	}
+}
+
+bootJar {
+	enabled = false
+}
+
+jar {
+	enabled = true
+}
