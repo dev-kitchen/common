@@ -11,3 +11,5 @@ public class CommonApplication {
 	}
 
 }
+
+//./gradlew publishToMavenLoca
