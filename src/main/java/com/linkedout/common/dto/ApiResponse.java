@@ -39,7 +39,7 @@ public class ApiResponse<T> {
 	 * 오류 정보
 	 * 오류가 발생한 경우에만 포함됩니다.
 	 */
-	private ErrorInfo error;
+	private T error;
 
 	/**
 	 * 성공 응답 생성 (상태 코드, 데이터, 메시지 포함)
@@ -112,37 +112,17 @@ public class ApiResponse<T> {
 	/**
 	 * 오류 응답 생성
 	 *
-	 * @param <T>       응답 데이터의 타입
-	 * @param status    HTTP 상태 코드
-	 * @param errorCode 에러 코드
-	 * @param message   에러 메시지
+	 * @param <T>     응답 데이터의 타입
+	 * @param status  HTTP 상태 코드
+	 * @param data    에러 데이터
+	 * @param message 에러 메시지
 	 * @return 에러 응답 객체
 	 */
-	public static <T> ApiResponse<T> error(int status, String errorCode, String message) {
+	public static <T> ApiResponse<T> error(int status, T data, String message) {
 		return ApiResponse.<T>builder()
 			.status(status)
 			.message(message)
-			.error(new ErrorInfo(errorCode, message))
+			.error(data)
 			.build();
-	}
-
-	/**
-	 * 오류 정보를 담는 내부 클래스
-	 */
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class ErrorInfo {
-		/**
-		 * 오류 코드
-		 * 예: "INVALID_PARAMETERS", "RESOURCE_NOT_FOUND" 등
-		 */
-		private String code;
-
-		/**
-		 * 오류 메시지
-		 * 상세한 오류 설명
-		 */
-		private String message;
 	}
 }
