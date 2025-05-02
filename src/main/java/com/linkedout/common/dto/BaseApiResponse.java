@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiResponse<T> {
+public class BaseApiResponse<T> {
 
 	/**
 	 * HTTP 상태 코드
@@ -39,7 +39,19 @@ public class ApiResponse<T> {
 	 * 오류 정보
 	 * 오류가 발생한 경우에만 포함됩니다.
 	 */
-	private T error;
+	private ErrorResponse error;
+
+	/**
+	 * 에러 응답을 위한 내부 클래스
+	 */
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ErrorResponse {
+		private boolean success;
+		private String message;
+	}
 
 	/**
 	 * 성공 응답 생성 (상태 코드, 데이터, 메시지 포함)
@@ -50,8 +62,8 @@ public class ApiResponse<T> {
 	 * @param message 응답 메시지
 	 * @return 성공 응답 객체
 	 */
-	public static <T> ApiResponse<T> success(int status, T data, String message) {
-		return ApiResponse.<T>builder()
+	public static <T> BaseApiResponse<T> success(int status, T data, String message) {
+		return BaseApiResponse.<T>builder()
 			.status(status)
 			.data(data)
 			.message(message)
@@ -66,7 +78,7 @@ public class ApiResponse<T> {
 	 * @param data   응답 데이터
 	 * @return 성공 응답 객체
 	 */
-	public static <T> ApiResponse<T> success(int status, T data) {
+	public static <T> BaseApiResponse<T> success(int status, T data) {
 		return success(status, data, getDefaultMessageForStatus(status));
 	}
 
@@ -78,7 +90,7 @@ public class ApiResponse<T> {
 	 * @param message 응답 메시지
 	 * @return 성공 응답 객체
 	 */
-	public static <T> ApiResponse<T> success(T data, String message) {
+	public static <T> BaseApiResponse<T> success(T data, String message) {
 		return success(200, data, message);
 	}
 
@@ -89,7 +101,7 @@ public class ApiResponse<T> {
 	 * @param data 응답 데이터
 	 * @return 성공 응답 객체
 	 */
-	public static <T> ApiResponse<T> success(T data) {
+	public static <T> BaseApiResponse<T> success(T data) {
 		return success(200, data);
 	}
 
@@ -111,18 +123,25 @@ public class ApiResponse<T> {
 
 	/**
 	 * 오류 응답 생성
-	 *
-	 * @param <T>     응답 데이터의 타입
-	 * @param status  HTTP 상태 코드
-	 * @param data    에러 데이터
-	 * @param message 에러 메시지
-	 * @return 에러 응답 객체
 	 */
-	public static <T> ApiResponse<T> error(int status, T data, String message) {
-		return ApiResponse.<T>builder()
+	public static <T> BaseApiResponse<T> error(int status, String message) {
+		return BaseApiResponse.<T>builder()
 			.status(status)
+			.data(null) // 에러 시 데이터는 null
 			.message(message)
-			.error(data)
+			.error(new ErrorResponse(false, message))
+			.build();
+	}
+
+	/**
+	 * 오류 응답 생성 (에러 코드 포함)
+	 */
+	public static <T> BaseApiResponse<T> error(int status, String message, String errorCode) {
+		return BaseApiResponse.<T>builder()
+			.status(status)
+			.data(null) // 에러 시 데이터는 null
+			.message(message)
+			.error(new ErrorResponse(false, message))
 			.build();
 	}
 }
