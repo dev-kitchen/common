@@ -24,7 +24,7 @@ public class ErrorResponseBuilder {
 	public ResponseEntity<Object> buildHttpErrorResponse(Exception ex, HttpStatus status) {
 		String message = ex.getMessage();
 
-		Map<String, Object> body = createErrorBody(status.value(), message);
+		Map<String, Object> body = createErrorBody(message);
 		return new ResponseEntity<>(body, status);
 	}
 
@@ -39,7 +39,7 @@ public class ErrorResponseBuilder {
 		response.getHeaders().put("Content-Type", "application/json");
 
 		try {
-			response.setBody(objectMapper.writeValueAsString(createErrorBody(statusCode, message)));
+			response.setBody(objectMapper.writeValueAsString(createErrorBody(message)));
 		} catch (JsonProcessingException e) {
 			response.setBody("{\"success\":false,\"message\":\"" + message + "\"}");
 		}
@@ -57,7 +57,7 @@ public class ErrorResponseBuilder {
 		response.getHeaders().put("Content-Type", "application/json");
 
 		try {
-			response.setBody(objectMapper.writeValueAsString(createErrorBody(statusCode, message)));
+			response.setBody(objectMapper.writeValueAsString(createErrorBody(message)));
 		} catch (JsonProcessingException e) {
 			response.setBody("{\"success\":false,\"message\":\"" + message + "\"}");
 		}
@@ -66,10 +66,9 @@ public class ErrorResponseBuilder {
 	/**
 	 * 공통 에러 응답 본문 생성
 	 */
-	private Map<String, Object> createErrorBody(int statusCode, String message) {
+	private Map<String, Object> createErrorBody(String message) {
 		Map<String, Object> errorBody = new HashMap<>();
 		errorBody.put("success", false);
-		errorBody.put("status", statusCode);
 		errorBody.put("message", message);
 		return errorBody;
 	}
