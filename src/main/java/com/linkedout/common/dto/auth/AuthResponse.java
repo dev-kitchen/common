@@ -1,6 +1,6 @@
 package com.linkedout.common.dto.auth;
 
-import com.linkedout.common.entity.User;
+import com.linkedout.common.entity.Account;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
 	private boolean success;
 	private String token;
-	private User user;
+	private Account account;
 	private String error;
 	private String correlationId;
 }

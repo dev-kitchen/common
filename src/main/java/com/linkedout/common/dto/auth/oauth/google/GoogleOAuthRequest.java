@@ -13,9 +13,5 @@ import lombok.NoArgsConstructor;
 public class GoogleOAuthRequest {
 	@NotNull
 	@NotBlank
-	private String code;
-
-	@NotNull
-	@NotBlank
-	private String redirectUri;
+	private String idToken;
 }
