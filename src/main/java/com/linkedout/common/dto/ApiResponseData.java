@@ -21,7 +21,7 @@ import java.util.Map;
  * - 객체를 바이트 스트림으로 변환하여 네트워크로 전송하거나 파일에 저장할 수 있게 함
  */
 @Data
-public class ResponseData implements Serializable {
+public class ApiResponseData implements Serializable {
 	/**
 	 * 응답과 요청을 연결하는 상관관계 ID
 	 * <p>

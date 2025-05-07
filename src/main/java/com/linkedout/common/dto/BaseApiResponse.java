@@ -41,17 +41,6 @@ public class BaseApiResponse<T> {
 	 */
 	private T error;
 
-//	/**
-//	 * 에러 응답을 위한 내부 클래스
-//	 */
-//	@Data
-//	@Builder
-//	@NoArgsConstructor
-//	@AllArgsConstructor
-//	public static class ErrorResponse {
-//		private boolean success;
-//		private String message;
-//	}
 
 	/**
 	 * 성공 응답 생성 (상태 코드, 데이터, 메시지 포함)
@@ -127,21 +116,10 @@ public class BaseApiResponse<T> {
 	public static <T> BaseApiResponse<T> error(int status, T data, String message) {
 		return BaseApiResponse.<T>builder()
 			.status(status)
-			.data(null) // 에러 시 데이터는 null
+			.data(null)
 			.message(message)
 			.error(data)
 			.build();
 	}
 
-//	/**
-//	 * 오류 응답 생성 (에러 코드 포함)
-//	 */
-//	public static <T> BaseApiResponse<T> error(int status, String message, String errorCode) {
-//		return BaseApiResponse.<T>builder()
-//			.status(status)
-//			.data(null) // 에러 시 데이터는 null
-//			.message(message)
-//			.error(new ErrorResponse(false, message))
-//			.build();
-//	}
 }

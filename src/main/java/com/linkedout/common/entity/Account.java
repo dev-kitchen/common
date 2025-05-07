@@ -24,5 +24,7 @@ public class Account extends BaseEntity {
 
 	private String picture;
 
+	private String providerId;
+
 	private String provider; // 'google', 'facebook' 등
 }

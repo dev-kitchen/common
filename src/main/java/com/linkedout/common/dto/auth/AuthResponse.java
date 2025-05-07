@@ -1,6 +1,5 @@
 package com.linkedout.common.dto.auth;
 
-import com.linkedout.common.entity.Account;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthResponse {
-	private boolean success;
-	private String token;
-	private Account account;
-	private String error;
-	private String correlationId;
+	private String accessToken;
+	private String refreshToken;
+	private String email;
+	private String name;
+	private String profileImage;
 }
