@@ -25,19 +25,19 @@ public class RabbitMQConstants {
 	public static final String GATEWAY_QUEUE = "gateway.queue";
 
 	public static final String AUTH_API_QUEUE = "auth.api.queue";
-	public static final String AUTH_SERVICE_QUEUE = "auth.service.queue";
+	public static final String AUTH_SERVICE_CONSUMER_QUEUE = "auth.service.consumer";
+	public static final String AUTH_SERVICE_LISTENER_QUEUE = "auth.service.listener";
 
 	public static final String ACCOUNT_API_QUEUE = "account.api.queue";
-	public static final String ACCOUNT_SERVICE_QUEUE = "account.service.queue";
+	public static final String ACCOUNT_SERVICE_CONSUMER_QUEUE = "account.service.consumer";
+	public static final String ACCOUNT_SERVICE_LISTENER_QUEUE = "account.service.listener";
 
 	// 라우팅 키(Routing Key) 상수
-	public static final String API_RESPONSE_ROUTING_KEY = "api.response";
-	public static final String SERVICE_RESPONSE_ROUTING_KEY = "api.response";
-
-	public static final String AUTH_API_ROUTING_KEY = "auth.api.request";
-	public static final String AUTH_SERVICE_ROUTING_KEY = "auth.service.request";
-	public static final String ACCOUNT_API_ROUTING_KEY = "account.api.request";
-	public static final String ACCOUNT_SERVICE_ROUTING_KEY = "account.service.request";
-	public static final String RECIPE_API_ROUTING_KEY = "recipe.api.request";
-	public static final String RECIPE_SERVICE_ROUTING_KEY = "recipe.service.request";
+	public static final String API_GATEWAY_ROUTING_KEY = "api.gateway.routing.key";
+	public static final String AUTH_API_ROUTING_KEY = "auth.api.routing.key";
+	public static final String AUTH_CONSUMER_ROUTING_KEY = "auth.consumer.routing.key";
+	public static final String AUTH_LISTENER_ROUTING_KEY = "auth.listener.routing.key";
+	public static final String ACCOUNT_API_ROUTING_KEY = "account.api.routing.key";
+	public static final String ACCOUNT_CONSUMER_ROUTING_KEY = "account.consumer.routing.key";
+	public static final String ACCOUNT_LISTENER_ROUTING_KEY = "account.listener.routing.key";
 }
