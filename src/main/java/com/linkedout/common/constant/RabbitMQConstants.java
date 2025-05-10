@@ -36,5 +36,8 @@ public class RabbitMQConstants {
 
 	public static final String AUTH_API_ROUTING_KEY = "auth.api.request";
 	public static final String AUTH_SERVICE_ROUTING_KEY = "auth.service.request";
-	public static final String ACCOUNT_ROUTING_KEY = "account.request";
+	public static final String ACCOUNT_API_ROUTING_KEY = "account.api.request";
+	public static final String ACCOUNT_SERVICE_ROUTING_KEY = "account.service.request";
+	public static final String RECIPE_API_ROUTING_KEY = "recipe.api.request";
+	public static final String RECIPE_SERVICE_ROUTING_KEY = "recipe.service.request";
 }

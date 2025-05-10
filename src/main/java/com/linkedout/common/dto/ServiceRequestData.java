@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 @Data
 public class ServiceRequestData<T> implements Serializable {
-	private String requestKey;
+	private String requestMethod;
 	private T data;
+	private String responseRoutingKey;
 }
