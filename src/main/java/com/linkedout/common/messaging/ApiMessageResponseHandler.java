@@ -15,7 +15,6 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.ReactiveRedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -30,34 +29,54 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class ApiMessageResponseHandler {
-
 	/**
-	 * Redis 템플릿 - 메시지 발행을 위해 사용
+	 * Redis 데이터 작업을 비동기적으로 수행하기 위한 리액티브 Redis 템플릿입니다.
+	 * 이 변수는 리액티브 프로그래밍 패러다임을 지원하여 Redis와의 논블로킹 상호작용을 용이하게 합니다.
+	 * Redis Pub/Sub 채널에 메시지를 발행하고, 값을 읽고, 애플리케이션 내에서 다른 Redis 작업을
+	 * 수행하는 데 사용됩니다.
 	 */
 	private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 
 	/**
-	 * Redis Pub/Sub 리스너 컨테이너
+	 * 리액티브 모드에서 Redis Pub/Sub 메시지 구독을 관리하는 데 사용되는 ReactiveRedisMessageListenerContainer
+	 * 인스턴스입니다. 이 컨테이너는 Redis 채널을 구독하고 메시지를 리액티브하게 처리할 수 있게 합니다.
+	 * 제공된 ReactiveRedisConnectionFactory를 통해 초기화됩니다.
 	 */
 	private final ReactiveRedisMessageListenerContainer listenerContainer;
 
 	/**
-	 * ObjectMapper - JSON 직렬화/역직렬화를 위해 사용
-	 */
-	private final ObjectMapper objectMapper;
-
-	/**
-	 * Redis Pub/Sub 채널 접두사
+	 * Redis Pub/Sub 채널 이름을 구성하는 데 사용되는 정적 접두사입니다.
+	 * <p>
+	 * 이 접두사는 상관 ID에 추가되어 마이크로서비스와 대기 중인 클라이언트 간의
+	 * 통신을 가능하게 하는 고유한 채널 이름을 생성합니다.
+	 * 구성된 채널 이름은 특정 요청-응답 흐름과 관련된 메시지를 발행하고
+	 * 구독하는 데 사용됩니다.
 	 */
 	private static final String REDIS_CHANNEL_PREFIX = "api-gateway:response-channel:";
 
 	/**
-	 * 응답 만료 시간 (초)
+	 * 리액티브 Redis Pub/Sub 시스템을 통해 데이터를 기다릴 때
+	 * 응답을 기다리는 최대 시간을 정의합니다.
+	 * <p>
+	 * 이 타임아웃은 특정 상관 ID를 사용하여 비동기적으로 응답을 기다리는
+	 * 시나리오에 적용됩니다. 이 기간 내에 응답을 받지 못하면
+	 * 대기 작업이 타임아웃 오류와 함께 종료됩니다.
+	 * <p>
+	 * 이 상수는 시스템이 무기한 대기하는 것을 방지하고
+	 * 클라이언트에게 예측 가능한 응답 시간을 제공합니다.
 	 */
 	private static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(30);
 
+	private final ObjectMapper objectMapper;
+
+
 	/**
-	 * 생성자
+	 * ApiMessageResponseHandler 클래스의 생성자입니다.
+	 * Redis 템플릿, 리스너 컨테이너, 객체 매퍼를 초기화합니다.
+	 *
+	 * @param reactiveRedisTemplate Redis 작업에 사용되는 ReactiveRedisTemplate
+	 * @param connectionFactory     리스너 컨테이너를 생성하는 데 사용되는 ReactiveRedisConnectionFactory
+	 * @param objectMapper          JSON 직렬화 및 역직렬화에 사용되는 ObjectMapper
 	 */
 	public ApiMessageResponseHandler(
 		ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
@@ -68,16 +87,24 @@ public class ApiMessageResponseHandler {
 		this.objectMapper = objectMapper;
 	}
 
+
 	/**
-	 * 초기화 메서드 - 서비스 시작 시 호출
+	 * MessageResponseHandlerService를 초기화합니다.
+	 * 이 메소드는 빈의 속성이 초기화된 후 자동으로 호출됩니다.
+	 * 서비스의 성공적인 초기화를 나타내는 로그 메시지를 기록합니다.
 	 */
 	@PostConstruct
 	public void init() {
 		log.info("MessageResponseHandlerService 초기화 완료");
 	}
 
+
 	/**
-	 * 종료 메서드 - 서비스 종료 시 호출
+	 * 서비스가 종료될 때 리소스를 정리하고 필요한 종료 작업을 수행합니다.
+	 * 이 메소드는 빈이 애플리케이션 컨텍스트에서 제거되기 전에 호출됩니다.
+	 * <p>
+	 * 리스너 컨테이너를 제거하고 MessageResponseHandlerService의 종료를
+	 * 나타내는 로그 메시지를 기록합니다.
 	 */
 	@PreDestroy
 	public void destroy() {
@@ -85,64 +112,44 @@ public class ApiMessageResponseHandler {
 		log.info("MessageResponseHandlerService 종료");
 	}
 
+
 	/**
-	 * 특정 correlationId에 대한 응답을 기다리는 Mono를 반환하는 메서드
+	 * 주어진 correlationId와 관련된 응답을 Redis 채널을 구독하고 메시지를 수신하여 기다립니다.
+	 * 응답은 ApiResponseData 객체로 역직렬화되어 reactive Mono로 반환됩니다.
 	 *
-	 * <p>이 메서드는 Redis Pub/Sub 채널을 구독하고, 응답이 도착하면 해당 응답을 받는 Mono를 반환합니다. 모든 상태는 Redis Pub/Sub 시스템 내에서만
-	 * 관리됩니다.
-	 *
-	 * @param correlationId 요청과 응답을 연결하는 상관관계 ID
-	 * @return 응답 데이터를 포함하는 Mono
+	 * @param correlationId 요청과 응답을 연결하는데 사용되는 고유 식별자
+	 * @return 유효한 메시지가 수신되면 역직렬화된 ApiResponseData 객체를 발행하는 Mono,
+	 * 응답 시간이 초과되거나 다른 문제가 발생하면 에러 신호를 발행
 	 */
 	public Mono<ApiResponseData> awaitResponse(String correlationId) {
-
-		// 고유한 리스너 ID 생성 (여러 인스턴스에서 동일한 correlationId에 대한 구독을 구분하기 위함)
 		String listenerId = UUID.randomUUID().toString();
 		String channelName = REDIS_CHANNEL_PREFIX + correlationId;
 		ChannelTopic topic = new ChannelTopic(channelName);
 
 		log.info("응답 대기 시작: correlationId={}, listenerId={}", correlationId, listenerId);
 
-		// Sink 생성 - 결과를 전달하기 위한 리액티브 컴포넌트
-		Sinks.One<ApiResponseData> sink = Sinks.one();
-
-		// 채널 구독 설정
-		var disposable =
-			listenerContainer
-				.receive(topic)
-				.mapNotNull(
-					message -> {
+		// 핵심 패턴: 구독을 시작하는 대신 변환 연산자만 사용
+		return Mono.fromDirect(
+				listenerContainer
+					.receive(topic)
+					.mapNotNull(message -> {
 						try {
-							// Redis 메시지를 ApiResponseData로 변환
-							String json = message.getMessage();
-							return objectMapper.readValue(json, ApiResponseData.class);
+							return objectMapper.readValue(message.getMessage(), ApiResponseData.class);
 						} catch (JsonProcessingException e) {
 							log.error("JSON 파싱 오류: {}", e.getMessage(), e);
 							return null;
 						}
 					})
-				.filter(Objects::nonNull)
-				.take(1) // 첫 번째 메시지만 처리
-				.subscribe(
-					responseData -> {
-						log.info(
-							"채널에서 응답 수신: correlationId={}, listenerId={}", correlationId, listenerId);
-						sink.tryEmitValue(responseData);
-					});
-
-		// 타임아웃 설정 및 리소스 정리 설정
-		return sink.asMono()
-			.timeout(RESPONSE_TIMEOUT)
-			.doFinally(
-				signalType -> {
-					log.info(
-						"응답 처리 완료: correlationId={}, listenerId={}, signalType={}",
-						correlationId,
-						listenerId,
-						signalType);
-					// 구독 취소
-					disposable.dispose();
-				});
+					.filter(Objects::nonNull)
+					.next()
+			)
+			.doOnSuccess(responseData -> log.info("채널에서 응답 수신: correlationId={}, listenerId={}", correlationId, listenerId))
+			.doFinally(signalType -> log.info(
+				"응답 처리 완료: correlationId={}, listenerId={}, signalType={}",
+				correlationId,
+				listenerId,
+				signalType))
+			.timeout(RESPONSE_TIMEOUT);
 	}
 
 	/**

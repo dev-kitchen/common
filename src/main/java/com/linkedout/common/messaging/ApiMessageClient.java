@@ -22,10 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 /**
- * API-Gateway 에서 마이크로서비스로 메시지를 전송하는 기본 컨트롤러
- *
- * <p>이 추상 클래스는 HTTP 요청을 받아 RabbitMQ 메시지로 변환하고 전송하는 공통 로직을 제공합니다. 각 서비스별 컨트롤러는 이 클래스를 상속받아 구현합니다.
+ * ApiMessageClient는 API 요청을 처리하고 RabbitMQ를 사용하여 메시징 기반의 서비스와 상호 작용하기 위한 추상 클래스입니다.
+ * 이 클래스는 HTTP 요청을 라우팅 키에 매핑하고, 메시지를 RabbitMQ에 전송한 뒤 비동기적으로 처리된 응답을 반환하는 주요 기능을 가지고 있습니다.
+ * 또한, API 응답 데이터를 파싱하여 클라이언트에 응답을 생성하는 유틸리티 메서드를 제공합니다.
+ * <p>
+ * 주요 기능은 메시지 전송과 응답 생성을 포함하며, 이를 통해 멀티 서비스 간의 비동기 통신을 효과적으로 처리할 수 있습니다.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -35,13 +38,22 @@ public abstract class ApiMessageClient {
 	protected final ApiMessageResponseHandler apiMessageResponseHandler;
 	protected final JsonUtils jsonUtils;
 
+
 	/**
-	 * 마이크로서비스로의 요청을 처리합니다. 요청 세부 정보를 추출하고, 요청 경로에 기반하여 라우팅 키를 결정한 뒤 RabbitMQ 교환기로 요청을 전송합니다. 비동기적으로
-	 * 응답을 기다린 후 {@link ResponseEntity}로 감싸서 {@link Mono}로 반환합니다.
+	 * HTTP 요청을 받아 적절한 서비스로 라우팅하여 처리합니다.
+	 * 요청 경로를 분석하여 해당하는 서비스의 메시지 큐로 RabbitMQ를 통해 전송하며,
+	 * 비동기적으로 처리된 결과를 응답으로 반환합니다.
 	 *
-	 * @param <T>      {@code BaseApiResponse} 내에 포함될 응답 본문의 타입
-	 * @param exchange 서버 요청과 응답 정보를 포함하는 {@link ServerWebExchange} 인스턴스
-	 * @return 응답 데이터가 {@code BaseApiResponse}에 감싸져 있는 {@link ResponseEntity}를 포함하는 {@link Mono}
+	 * <p>주요 처리 과정:
+	 * 1. 요청 경로를 분석하여 적절한 라우팅 키 결정 (/api/auth -> auth-service 등)
+	 * 2. HTTP 요청 데이터를 메시지 형태로 변환
+	 * 3. RabbitMQ를 통해 해당 서비스로 메시지 전송
+	 * 4. 비동기 응답을 대기하고 결과 반환
+	 *
+	 * @param <T>      {@code BaseApiResponse} 내에 캡슐화된 응답 본문의 타입
+	 * @param exchange HTTP 요청과 응답 정보를 포함하는 {@code ServerWebExchange}
+	 * @return 비동기 처리가 완료되면 응답 데이터가 포함된 {@code BaseApiResponse}를 담고 있는
+	 * {@code ResponseEntity}를 방출하는 {@code Mono}
 	 */
 	protected <T> Mono<ResponseEntity<BaseApiResponse<T>>> sendMessage(
 		ServerWebExchange exchange) {
