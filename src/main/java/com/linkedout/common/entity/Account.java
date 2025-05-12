@@ -1,28 +1,34 @@
 package com.linkedout.common.entity;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 
-@Entity
+@Table("account")
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account extends BaseEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column("id")
 	private Long id;
 
-	@Column(nullable = false, unique = true)
+	@Column("email")
 	private String email;
 
+	@Column("name")
 	private String name;
 
+	@Column("picture")
 	private String picture;
 
+	@Column("provider_id")
 	private String providerId;
 
-	private String provider; // 'google', 'facebook' 등
+	@Column("provider")
+	private String provider;
 }

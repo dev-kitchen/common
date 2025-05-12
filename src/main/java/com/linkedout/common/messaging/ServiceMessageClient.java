@@ -98,6 +98,11 @@ public class ServiceMessageClient {
 							return;
 						}
 
+						if (response.getPayload() == null) {
+							sink.complete(); // 값 없이 완료 처리
+							return;
+						}
+
 						sink.next(objectMapper.convertValue(response.getPayload(), responseType));
 					} catch (Exception e) {
 						log.error("응답 변환 오류: {}", e.getMessage(), e);
