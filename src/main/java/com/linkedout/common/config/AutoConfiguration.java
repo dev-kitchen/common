@@ -7,7 +7,12 @@ import com.linkedout.common.messaging.ServiceIdentifier;
 import com.linkedout.common.messaging.ServiceMessageClient;
 import com.linkedout.common.messaging.ServiceMessageResponseHandler;
 import com.linkedout.common.util.JsonUtils;
+import com.linkedout.common.util.PayloadConverter;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+import org.modelmapper.config.Configuration.AccessLevel;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
@@ -110,5 +115,25 @@ public class AutoConfiguration {
 		ServiceMessageResponseHandler serviceMessageResponseHandler,
 		ServiceIdentifier serviceIdentifier) {
 		return new ServiceMessageClient(rabbitTemplate, objectMapper, serviceMessageResponseHandler, serviceIdentifier);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean // 이미 ModelMapper 빈이 등록되어 있지 않은 경우에만 등록
+	public ModelMapper modelMapper() {
+		ModelMapper modelMapper = new ModelMapper();
+
+		modelMapper.getConfiguration()
+			.setMatchingStrategy(MatchingStrategies.STRICT)
+			.setFieldMatchingEnabled(true)
+			.setSkipNullEnabled(true)
+			.setFieldAccessLevel(AccessLevel.PRIVATE);
+
+		return modelMapper;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public PayloadConverter payloadConverter(ObjectMapper objectMapper) {
+		return new PayloadConverter(objectMapper);
 	}
 }

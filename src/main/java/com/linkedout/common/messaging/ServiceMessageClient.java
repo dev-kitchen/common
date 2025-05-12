@@ -91,16 +91,17 @@ public class ServiceMessageClient {
 						correlationId, targetService, operation);
 					return Mono.error(new InternalServerErrorException("서비스 응답 타임아웃 발생"));
 				})
-				.mapNotNull(response -> {
+				.handle((response, sink) -> {
 					try {
 						if (response.getError() != null) {
-							throw new BadRequestException(response.getError());
+							sink.error(new BadRequestException(response.getError()));
+							return;
 						}
 
-						return objectMapper.convertValue(response.getPayload(), responseType);
+						sink.next(objectMapper.convertValue(response.getPayload(), responseType));
 					} catch (Exception e) {
 						log.error("응답 변환 오류: {}", e.getMessage(), e);
-						throw new InternalServerErrorException("응답 변환 중 오류 발생");
+						sink.error(new InternalServerErrorException("응답 변환 중 오류 발생"));
 					}
 				});
 

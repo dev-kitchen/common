@@ -20,8 +20,6 @@ public class Account extends BaseEntity {
 
 	private String name;
 
-	private String nick;
-
 	private String picture;
 
 	private String providerId;
