@@ -1,6 +1,6 @@
 package com.linkedout.common.dto.account;
 
-
+import com.linkedout.common.type.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,31 +17,21 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountDTO {
-	@NotNull
-	private Long id;
+  @NotNull private Long id;
 
-	@NotNull
-	@NotBlank
-	@Email
-	private String email;
+  @NotNull @NotBlank @Email private String email;
 
-	@NotNull
-	@NotBlank
-	private String name;
+  @NotNull @NotBlank private String name;
 
-	private String picture;
+  private String picture;
 
-	@NotNull
-	@NotBlank
-	private String providerId;
+  @NotNull @NotBlank private String providerId;
 
-	@NotNull
-	@NotBlank
-	private String provider;
+  @NotNull @NotBlank private String provider;
 
-	@PastOrPresent
-	private LocalDateTime createdAt;
+  @NotNull @NotBlank private RoleEnum role;
 
-	@PastOrPresent
-	private LocalDateTime updatedAt;
+  @PastOrPresent private LocalDateTime createdAt;
+
+  @PastOrPresent private LocalDateTime updatedAt;
 }
