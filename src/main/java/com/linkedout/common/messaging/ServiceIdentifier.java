@@ -52,6 +52,6 @@ public class ServiceIdentifier {
 	 * @return "<serviceName>.service.listener" 형식으로 동적 구성된 응답 큐 이름
 	 */
 	public String getResponseQueueName() {
-		return serviceName + ".service.listener";
+		return serviceName + ".listener.queue";
 	}
 }
