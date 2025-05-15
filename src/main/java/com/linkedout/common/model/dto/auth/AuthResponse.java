@@ -1,4 +1,4 @@
-package com.linkedout.common.dto.auth;
+package com.linkedout.common.model.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

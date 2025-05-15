@@ -1,7 +1,7 @@
-package com.linkedout.common.schema;
+package com.linkedout.common.model.schema;
 
-import com.linkedout.common.dto.BaseApiResponse;
-import com.linkedout.common.dto.auth.oauth.google.GoogleOAuthResponse;
+import com.linkedout.common.model.dto.BaseApiResponse;
+import com.linkedout.common.model.dto.auth.oauth.google.GoogleOAuthResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "구글 OAuth 응답 래퍼")

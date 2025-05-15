@@ -1,4 +1,4 @@
-package com.linkedout.common.dto.auth.oauth.google;
+package com.linkedout.common.model.dto.auth.oauth.google;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

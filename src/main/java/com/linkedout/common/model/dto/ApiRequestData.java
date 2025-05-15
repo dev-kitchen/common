@@ -1,4 +1,4 @@
-package com.linkedout.common.dto;
+package com.linkedout.common.model.dto;
 
 import lombok.Data;
 

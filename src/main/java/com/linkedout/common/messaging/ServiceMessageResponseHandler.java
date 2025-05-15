@@ -2,7 +2,7 @@ package com.linkedout.common.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.linkedout.common.dto.ServiceMessageDTO;
+import com.linkedout.common.model.dto.ServiceMessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;

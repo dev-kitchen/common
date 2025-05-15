@@ -1,5 +1,5 @@
 
-package com.linkedout.common.dto.auth.oauth.google;
+package com.linkedout.common.model.dto.auth.oauth.google;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class GoogleOAuthResponse {
 
 	@JsonProperty("expires_in")
 	private Integer expiresIn;
-	
+
 	private String scope;
 	private String name;
 	private String email;

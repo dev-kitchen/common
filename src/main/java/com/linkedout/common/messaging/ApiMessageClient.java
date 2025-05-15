@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linkedout.common.constant.RabbitMQConstants;
-import com.linkedout.common.dto.BaseApiResponse;
-import com.linkedout.common.dto.ServiceMessageDTO;
+import com.linkedout.common.model.dto.BaseApiResponse;
+import com.linkedout.common.model.dto.EnrichedRequestData;
+import com.linkedout.common.model.dto.ServiceMessageDTO;
+import com.linkedout.common.model.dto.auth.AuthenticationDTO;
 import com.linkedout.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -24,11 +29,9 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * ApiMessageClient는 API 요청을 처리하고 RabbitMQ를 사용하여 메시징 기반의 서비스와 상호 작용하기 위한 추상 클래스입니다. 이 클래스는 HTTP 요청을
@@ -65,111 +68,247 @@ public abstract class ApiMessageClient {
 		String targetService = determineTargetService(path);
 		String operation = determineOperation(path, request.getMethod().name());
 
-		return request
-			.getBody()
-			.collectList()
-			.flatMap(
-				dataBuffers -> {
-					String requestBody = convertDataBuffersToString(dataBuffers);
+		// 메시지 상관관계 ID 생성
+		String correlationId = UUID.randomUUID().toString();
 
-					Object requestData;
-					try {
-						if (!requestBody.isEmpty()) {
-							requestData = jsonUtils.fromJson(requestBody, Object.class);
-						} else {
-							requestData = new HashMap<>(); // 빈 요청 본문인 경우
+		// 기본 서비스 메시지 빌더 생성
+		ServiceMessageDTO.ServiceMessageDTOBuilder<Object> messageBuilder = ServiceMessageDTO.builder()
+			.correlationId(correlationId)
+			.senderService(serviceIdentifier.getServiceName())
+			.operation(operation)
+			.replyTo(serviceIdentifier.getResponseRoutingKey());
+
+		// 인증 정보 가져오기
+		return ReactiveSecurityContextHolder.getContext()
+			.map(context -> {
+				Authentication authentication = context.getAuthentication();
+				if (authentication != null && authentication.isAuthenticated()) {
+					// Authentication 객체를 AuthenticationDTO로 변환
+					AuthenticationDTO authDTO = convertToAuthenticationDTO(authentication);
+					messageBuilder.authentication(authDTO);
+				}
+				return messageBuilder;
+			})
+			.defaultIfEmpty(messageBuilder)  // 인증 정보가 없는 경우
+			.flatMap(builder ->
+				request.getBody()
+					.collectList()
+					.flatMap(dataBuffers -> {
+						String requestBody = convertDataBuffersToString(dataBuffers);
+
+						Object requestData;
+						try {
+							if (!requestBody.isEmpty()) {
+								requestData = jsonUtils.fromJson(requestBody, Object.class);
+							} else {
+								requestData = new HashMap<>(); // 빈 요청 본문인 경우
+							}
+						} catch (Exception e) {
+							log.error("요청 본문 변환 중 오류 발생", e);
+							requestData = requestBody; // 변환 실패 시 원본 문자열 사용
 						}
-					} catch (Exception e) {
-						log.error("요청 본문 변환 중 오류 발생", e);
-						requestData = requestBody; // 변환 실패 시 원본 문자열 사용
-					}
 
-					Map<String, Object> enrichedRequestData;
-					if (requestData instanceof Map) {
-						// 맵인 경우 캐스팅하여 사용
-						@SuppressWarnings("unchecked")
-						Map<String, Object> requestMap = (Map<String, Object>) requestData;
-						enrichedRequestData = new HashMap<>(requestMap);
-					} else {
-						// 맵이 아닌 경우 새 맵을 생성하고 'body' 키에 원본 데이터 저장
-						enrichedRequestData = new HashMap<>();
-						enrichedRequestData.put("body", requestData);
-					}
+						EnrichedRequestData<Object> enrichedRequest = new EnrichedRequestData<>();
+						enrichedRequest.setBody(requestData);
+						enrichedRequest.setPath(path);
+						enrichedRequest.setMethod(request.getMethod().name());
+						enrichedRequest.setHeaders(getHeadersMap(request.getHeaders()));
+						enrichedRequest.setQueryParams(exchange.getRequest().getQueryParams().toSingleValueMap());
 
-					enrichedRequestData.put("path", path);
-					enrichedRequestData.put("method", request.getMethod().name());
-					enrichedRequestData.put("headers", getHeadersMap(request.getHeaders()));
-					enrichedRequestData.put(
-						"queryParams", exchange.getRequest().getQueryParams().toSingleValueMap());
-
-					// 메시지 상관관계 ID 생성
-					String correlationId = UUID.randomUUID().toString();
-					// RabbitMQ로 메시지 전송
-
-					// 서비스 메시지 생성
-					ServiceMessageDTO<Object> message =
-						ServiceMessageDTO.builder()
-							.correlationId(correlationId)
-							.senderService(serviceIdentifier.getServiceName()) // 적절한 서비스 식별자로 변경
-							.operation(operation)
-							.replyTo(serviceIdentifier.getResponseRoutingKey()) // 응답을 받을 라우팅 키
-							.payload(enrichedRequestData)
+						// 이제 payload 설정
+						ServiceMessageDTO<Object> message = builder
+							.payload(enrichedRequest)
 							.build();
 
-					Mono<ServiceMessageDTO<?>> responseMono =
-						serviceMessageResponseHandler.awaitResponse(correlationId);
+						Mono<ServiceMessageDTO<?>> responseMono =
+							serviceMessageResponseHandler.awaitResponse(correlationId);
 
-					String routingKey = targetService + ".consumer.routing.key";
+						String routingKey = targetService + ".consumer.routing.key";
 
-					log.info("서비스 메시지 발송: target={}, operation={}, correlationId={}",
-						routingKey, operation, correlationId);
+						// 로그에 인증 정보 포함 여부 표시
+						boolean isAuthenticated = message.getAuthentication() != null;
+						String userId = isAuthenticated ? message.getAuthentication().getPrincipal() : "anonymous";
 
-					rabbitTemplate.convertAndSend(
-						RabbitMQConstants.SERVICE_EXCHANGE,
-						routingKey,
-						message,
-						msg -> {
-							msg.getMessageProperties().setCorrelationId(correlationId);
-							msg.getMessageProperties()
-								.getHeaders()
-								.put(AmqpHeaders.CORRELATION_ID, correlationId);
-							msg.getMessageProperties().setReplyTo(serviceIdentifier.getResponseRoutingKey());
-							return msg;
-						});
-					// 비동기 응답 처리
-					return responseMono
-						.timeout(Duration.ofSeconds(30))
-						.onErrorResume(
-							TimeoutException.class,
-							e -> {
-								log.error("서비스 응답 타임아웃: correlationId={}, path={}", correlationId, path);
-								return Mono.error(
-									new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "서비스 응답 타임아웃"));
-							})
-						.map(this::createResponseEntityFromServiceMessage);
-				});
+						log.info("서비스 메시지 발송: target={}, operation={}, correlationId={}, authenticated={}, userId={}",
+							routingKey, operation, correlationId, isAuthenticated, userId);
+
+						rabbitTemplate.convertAndSend(
+							RabbitMQConstants.SERVICE_EXCHANGE,
+							routingKey,
+							message,
+							msg -> {
+								msg.getMessageProperties().setCorrelationId(correlationId);
+								msg.getMessageProperties()
+									.getHeaders()
+									.put(AmqpHeaders.CORRELATION_ID, correlationId);
+								msg.getMessageProperties().setReplyTo(serviceIdentifier.getResponseRoutingKey());
+								return msg;
+							});
+
+						// 비동기 응답 처리
+						return responseMono
+							.timeout(Duration.ofSeconds(30))
+							.onErrorResume(
+								TimeoutException.class,
+								e -> {
+									log.error("서비스 응답 타임아웃: correlationId={}, path={}", correlationId, path);
+									return Mono.error(
+										new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "서비스 응답 타임아웃"));
+								})
+							.map(this::createResponseEntityFromServiceMessage);
+					})
+			);
 	}
 
+	/**
+	 * Authentication 객체를 AuthenticationDTO로 변환
+	 */
+	private AuthenticationDTO convertToAuthenticationDTO(Authentication authentication) {
+		// 권한 목록 추출
+		List<String> authorities = authentication.getAuthorities().stream()
+			.map(GrantedAuthority::getAuthority)
+			.collect(Collectors.toList());
+
+		// 상세 정보 추출
+		Map<String, Object> details = null;
+		if (authentication.getDetails() instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> detailsMap = (Map<String, Object>) authentication.getDetails();
+			details = new HashMap<>(detailsMap);
+		} else {
+			details = new HashMap<>();
+		}
+
+		// AuthenticationDTO 생성 및 반환
+		return AuthenticationDTO.builder()
+			.principal(authentication.getName())
+			.authorities(authorities)
+			.details(details)
+			.build();
+	}
 
 	/**
-	 * API 경로와 HTTP 메서드를 기반으로 작업 이름을 결정합니다.
-	 * 작업 이름은 HTTP 메서드(소문자)와 API 경로의 마지막 세그먼트(대문자로 시작)를
-	 * 연결하여 생성됩니다.
-	 * 경로가 3개 미만의 세그먼트를 포함하는 경우 기본값이 반환됩니다.
+	 * URL 경로와 HTTP 메서드로부터 작업명을 결정하는 메서드
+	 * <p>
+	 * 패턴 예시:
+	 * - /api/recipes         -> getRecipes (컬렉션 조회)
+	 * - /api/recipes/123     -> getRecipeById (ID로 단일 항목 조회)
+	 * - /api/users/search    -> getSearch (검색 기능)
+	 * - /api/orders/123/items -> getOrderItems (하위 리소스 조회)
+	 * - /api/products/123/reviews/456 -> getProductReviewById (중첩 리소스 조회)
 	 *
-	 * @param path   슬래시로 구분된 일반적인 요청의 API 경로 (ex: "/api/auth/login")
-	 * @param method 요청의 HTTP 메서드(예: GET, POST 등)
-	 * @return 구성된 작업 이름 또는 경로 세그먼트가 부족한 경우 "default" (ex: "postLogin", "getUsers")
+	 * @param path   HTTP 요청 경로
+	 * @param method HTTP 메서드(GET, POST, PUT, DELETE 등)
+	 * @return 결정된 작업명
 	 */
 	private String determineOperation(String path, String method) {
 		String[] segments = path.split("/");
-		if (segments.length < 3) {
+		List<String> validSegments = Arrays.stream(segments)
+			.filter(s -> !s.isEmpty())
+			.toList();
+
+		if (validSegments.isEmpty()) {
 			return "default";
 		}
 
-		String lastSegment = segments[segments.length - 1];
+		// HTTP 메서드를 소문자로 변환 (get, post, put, delete 등)
+		String httpMethod = method.toLowerCase();
 
-		return method.toLowerCase() + capitalize(lastSegment);
+		// API 접두사 제거 (api와 첫 번째 리소스 이름(auth 또는 account) 제거)
+		if (validSegments.get(0).equals("api") && validSegments.size() > 2) {
+			// api와 auth/account 모두 제거하고 그 다음부터 시작
+			validSegments = validSegments.subList(2, validSegments.size());
+		} else if (validSegments.get(0).equals("api") && validSegments.size() > 1) {
+			// api만 제거
+			validSegments = validSegments.subList(1, validSegments.size());
+		}
+
+		// validSegments가 비어있으면 기본값 반환
+		if (validSegments.isEmpty()) {
+			return httpMethod;
+		}
+
+		// 단일 세그먼트인 경우
+		if (validSegments.size() == 1) {
+			// ID 체크 - 숫자만 있는 경우 "ById" 접미사 사용
+			if (validSegments.get(0).matches("\\d+")) {
+				return httpMethod + "ById";
+			}
+			return httpMethod + capitalize(validSegments.get(0));
+		}
+
+		// 여러 세그먼트가 있는 경우
+		StringBuilder result = new StringBuilder(httpMethod);
+
+		for (int i = 0; i < validSegments.size(); i++) {
+			String segment = validSegments.get(i);
+
+			// 숫자만 있는 세그먼트(ID)는 "ById"로 변환
+			if (segment.matches("\\d+")) {
+				// 이전 세그먼트가 있는 경우에는 이전 세그먼트의 단수형 + "ById"
+				if (i > 0) {
+					// 이미 ById가 추가되었는지 확인
+					if (!result.toString().endsWith("ById")) {
+						result.append("ById");
+					}
+				} else {
+					// 첫 번째 세그먼트가 ID인 경우 (드문 경우)
+					result.append("ById");
+				}
+			} else {
+				// 일반 세그먼트는 그대로 추가
+				result.append(capitalize(segment));
+			}
+		}
+
+		return result.toString();
+	}
+
+	/**
+	 * 세그먼트 리스트를 연결하여 camelCase 형태의 문자열로 변환
+	 */
+	private String concatSegments(List<String> segments) {
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < segments.size(); i++) {
+			String segment = segments.get(i);
+			// 숫자만 있는 세그먼트(ID)는 특별히 처리
+			if (segment.matches("\\d+")) {
+				String previousResource = i > 0 ? segments.get(i - 1) : "";
+				if (!previousResource.isEmpty()) {
+					result.append(capitalize(singularize(previousResource))).append("ById");
+				} else {
+					result.append("ById").append(segment);
+				}
+			} else {
+				result.append(capitalize(segment));
+			}
+		}
+		return result.toString();
+	}
+
+	/**
+	 * 복수형 명사를 단수형으로 변환 (간단한 규칙만 적용)
+	 */
+	private String singularize(String plural) {
+		if (plural == null || plural.isEmpty()) {
+			return plural;
+		}
+
+		// 간단한 영어 복수형 규칙 적용
+		if (plural.endsWith("ies")) {
+			return plural.substring(0, plural.length() - 3) + "y";
+		} else if (plural.endsWith("es") && (
+			plural.endsWith("sses") ||
+				plural.endsWith("shes") ||
+				plural.endsWith("ches") ||
+				plural.endsWith("xes"))) {
+			return plural.substring(0, plural.length() - 2);
+		} else if (plural.endsWith("s") && !plural.endsWith("ss")) {
+			return plural.substring(0, plural.length() - 1);
+		}
+
+		// 변환 규칙이 없으면 원래 문자열 반환
+		return plural;
 	}
 
 	/**

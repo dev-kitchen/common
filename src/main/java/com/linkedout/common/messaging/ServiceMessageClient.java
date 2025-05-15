@@ -2,7 +2,7 @@ package com.linkedout.common.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linkedout.common.constant.RabbitMQConstants;
-import com.linkedout.common.dto.ServiceMessageDTO;
+import com.linkedout.common.model.dto.ServiceMessageDTO;
 import com.linkedout.common.exception.BadRequestException;
 import com.linkedout.common.exception.InternalServerErrorException;
 import lombok.extern.slf4j.Slf4j;

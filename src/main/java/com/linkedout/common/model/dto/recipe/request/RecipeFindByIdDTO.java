@@ -1,4 +1,4 @@
-package com.linkedout.common.dto;
+package com.linkedout.common.model.dto.recipe.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HealthResponse {
-	private Boolean success;
-	private String message;
+public class RecipeFindByIdDTO {
+	private Long recipeId;
 }

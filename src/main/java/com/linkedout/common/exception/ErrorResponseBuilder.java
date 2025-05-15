@@ -2,7 +2,7 @@ package com.linkedout.common.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.linkedout.common.dto.ApiResponseData;
+import com.linkedout.common.model.dto.ApiResponseData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
