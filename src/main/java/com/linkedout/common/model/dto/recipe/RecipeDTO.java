@@ -3,6 +3,8 @@ package com.linkedout.common.model.dto.recipe;
 import com.linkedout.common.model.dto.account.AccountDTO;
 import com.linkedout.common.model.type.UnitType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,7 +40,7 @@ public class RecipeDTO {
 	private String source;
 
 	@Schema(description = "유튜브 링크", example = "https://youtube.com/watch?v=...")
-	private String link;
+	private String youtubeLink;
 
 	@Schema(description = "작성자 정보")
 	private AccountDTO author;
@@ -67,12 +69,17 @@ public class RecipeDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class IngredientDTO {
+		@NotNull
+		@NotBlank
 		@Schema(description = "재료 이름", example = "돼지고기")
 		private String name;
 
 		@Schema(description = "재료 단위", example = "g")
+		@NotNull
 		private UnitType unit;
 
+		@NotNull
+		@NotBlank
 		@Schema(description = "재료 수량", example = "300")
 		private String quantity;
 	}

@@ -34,8 +34,8 @@ public class Recipe extends BaseEntity {
 	@Column("tip")
 	private String tip;
 
-	@Column("link")  // 유튜브 링크 컬럼
-	private String link;
+	@Column("youtube_link")  // 유튜브 링크 컬럼
+	private String youtubeLink;
 
 	@Column("source")  // 출처 컬럼
 	private String source;
