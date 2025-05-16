@@ -1,8 +1,12 @@
 package com.linkedout.common.model.dto;
 
+import lombok.Data;
+
 import java.util.Map;
 
-public class EnrichedRequestData<T> {
+
+@Data
+public class EnrichedRequestDTO<T> {
 	private T body;
 	private String path;
 	private String method;
@@ -10,13 +14,13 @@ public class EnrichedRequestData<T> {
 	private Map<String, String> queryParams;
 
 	// 기본 생성자
-	public EnrichedRequestData() {
+	public EnrichedRequestDTO() {
 	}
 
 	// 모든 필드를 포함한 생성자
-	public EnrichedRequestData(T body, String path, String method,
-														 Map<String, String> headers,
-														 Map<String, String> queryParams) {
+	public EnrichedRequestDTO(T body, String path, String method,
+														Map<String, String> headers,
+														Map<String, String> queryParams) {
 		this.body = body;
 		this.path = path;
 		this.method = method;
@@ -78,44 +82,4 @@ public class EnrichedRequestData<T> {
 		return queryParams.get(name);
 	}
 
-	// Getter와 Setter 메서드
-	public T getBody() {
-		return body;
-	}
-
-	public void setBody(T body) {
-		this.body = body;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public String getMethod() {
-		return method;
-	}
-
-	public void setMethod(String method) {
-		this.method = method;
-	}
-
-	public Map<String, String> getHeaders() {
-		return headers;
-	}
-
-	public void setHeaders(Map<String, String> headers) {
-		this.headers = headers;
-	}
-
-	public Map<String, String> getQueryParams() {
-		return queryParams;
-	}
-
-	public void setQueryParams(Map<String, String> queryParams) {
-		this.queryParams = queryParams;
-	}
 }

@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 @ReadingConverter
-public class SourceListConverter implements Converter<Json, List<Recipe.Source>> {
+public class SourceListConverter implements Converter<Json, List<Recipe.Sauces>> {
 	private final ObjectMapper objectMapper;
 
 	public SourceListConverter() {
@@ -27,10 +27,10 @@ public class SourceListConverter implements Converter<Json, List<Recipe.Source>>
 	}
 
 	@Override
-	public List<Recipe.Source> convert(Json source) {
+	public List<Recipe.Sauces> convert(Json source) {
 		try {
 			return objectMapper.readValue(source.asArray(),
-				new TypeReference<List<Recipe.Source>>() {
+				new TypeReference<List<Recipe.Sauces>>() {
 				});
 		} catch (IOException e) {
 			throw new RuntimeException("Error converting JSON to ManualStep List", e);

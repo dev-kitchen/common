@@ -118,6 +118,9 @@ public class AutoConfiguration {
 			.setSkipNullEnabled(true)
 			.setFieldAccessLevel(AccessLevel.PRIVATE);
 
+		modelMapper.addConverter(new ArrayToLocalDateTimeConverter());
+		modelMapper.addConverter(new LocalDateTimeToStringConverter());
+
 		return modelMapper;
 	}
 
@@ -142,12 +145,12 @@ public class AutoConfiguration {
 
 		// Recipe.Source를 위한 컨버터
 		converters.add(new SourceListConverter());
-		converters.add(new ListToJsonConverter<Recipe.Source>());
+		converters.add(new ListToJsonConverter<Recipe.Sauces>());
 
 		// Recipe.ManualStep을 위한 컨버터
 		converters.add(new ManualStepListConverter());
 		converters.add(new ListToJsonConverter<Recipe.ManualStep>());
-
+		
 		return R2dbcCustomConversions.of(dialect, converters);
 	}
 }

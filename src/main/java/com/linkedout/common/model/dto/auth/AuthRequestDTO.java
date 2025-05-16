@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthRequest {
+public class AuthRequestDTO {
 	private String type; // "oauth", "token-validate", "logout"
 	private String provider; // "google", "facebook", etc.
 	private String code; // OAuth authorization code

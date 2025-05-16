@@ -13,9 +13,6 @@ import java.util.Map;
  * <p>이 클래스는 마이크로서비스가 요청을 처리한 후 생성하는 응답 데이터를 표현합니다. RabbitMQ를 통해 마이크로서비스에서 API Gateway로 전송되며, API
  * Gateway는 이 응답 데이터를 다시 HTTP 응답으로 변환하여 클라이언트에게 전달합니다.
  *
- * <p>{@code @Data}: - Lombok 애노테이션으로 게터, 세터, equals(), hashCode(), toString() 메서드를 자동 생성 - 코드를 간결하게
- * 유지할 수 있게 해줌
- *
  * <p>Serializable 인터페이스 구현: - RabbitMQ를 통해 객체를 전송하기 위해 직렬화 가능해야 함 - 객체를 바이트 스트림으로 변환하여 네트워크로 전송하거나
  * 파일에 저장할 수 있게 함
  */

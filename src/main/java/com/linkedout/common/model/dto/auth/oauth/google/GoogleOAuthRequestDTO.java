@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GoogleOAuthRequest {
+public class GoogleOAuthRequestDTO {
 	@NotNull
 	@NotBlank
 	private String idToken;

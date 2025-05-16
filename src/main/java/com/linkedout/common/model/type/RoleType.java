@@ -3,7 +3,7 @@ package com.linkedout.common.model.type;
 import lombok.Getter;
 
 @Getter
-public enum RoleEnum {
+public enum RoleType {
 	ROLE_USER,
 	ROLE_ADMIN;
 
@@ -13,9 +13,9 @@ public enum RoleEnum {
 	}
 
 	// 문자열에서 Enum으로 변환
-	public static RoleEnum fromValue(String value) {
+	public static RoleType fromValue(String value) {
 		try {
-			return RoleEnum.valueOf(value);
+			return RoleType.valueOf(value);
 		} catch (IllegalArgumentException e) {
 			return ROLE_USER; // 기본값
 		}

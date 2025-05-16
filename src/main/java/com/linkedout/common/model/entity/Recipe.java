@@ -1,6 +1,6 @@
 package com.linkedout.common.model.entity;
 
-import com.linkedout.common.model.type.UnitEnum;
+import com.linkedout.common.model.type.UnitType;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -34,11 +34,17 @@ public class Recipe extends BaseEntity {
 	@Column("tip")
 	private String tip;
 
+	@Column("link")  // 유튜브 링크 컬럼
+	private String link;
+
+	@Column("source")  // 출처 컬럼
+	private String source;
+
 	@Column("ingredients")
 	private List<Ingredient> ingredients;
 
-	@Column("sources")
-	private List<Source> sources;
+	@Column("sauces")
+	private List<Sauces> sauces;
 
 	@Column("manual_steps")
 	private List<ManualStep> manualSteps;
@@ -46,17 +52,20 @@ public class Recipe extends BaseEntity {
 	@Column("normalized_name")
 	private String normalizedName;
 
+	@Column("author_id")  // author를 author_id로 변경 (Account 테이블의 ID를 참조)
+	private Long authorId;
+
 	@Data
 	public static class Ingredient {
 		private String name;
-		private UnitEnum unit;
+		private UnitType unit;
 		private String quantity;
 	}
 
 	@Data
-	public static class Source {
+	public static class Sauces {
 		private String name;
-		private UnitEnum unit;
+		private UnitType unit;
 		private String quantity;
 	}
 

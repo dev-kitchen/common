@@ -3,7 +3,7 @@ package com.linkedout.common.model.type;
 import lombok.Getter;
 
 @Getter
-public enum UnitEnum {
+public enum UnitType {
 	g("g"),
 	kg("kg"),
 	ml("ml"),
@@ -28,7 +28,7 @@ public enum UnitEnum {
 
 	private final String value;
 
-	UnitEnum(String value) {
+	UnitType(String value) {
 		this.value = value;
 	}
 }

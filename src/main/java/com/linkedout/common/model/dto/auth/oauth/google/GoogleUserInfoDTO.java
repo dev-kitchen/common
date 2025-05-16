@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class GoogleUserInfo {
+public class GoogleUserInfoDTO {
 	private String sub;
 	private String name;
 	private String given_name;

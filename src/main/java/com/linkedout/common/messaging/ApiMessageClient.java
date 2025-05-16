@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linkedout.common.constant.RabbitMQConstants;
 import com.linkedout.common.model.dto.BaseApiResponse;
-import com.linkedout.common.model.dto.EnrichedRequestData;
+import com.linkedout.common.model.dto.EnrichedRequestDTO;
 import com.linkedout.common.model.dto.ServiceMessageDTO;
 import com.linkedout.common.model.dto.auth.AuthenticationDTO;
 import com.linkedout.common.util.JsonUtils;
@@ -108,7 +108,7 @@ public abstract class ApiMessageClient {
 							requestData = requestBody; // 변환 실패 시 원본 문자열 사용
 						}
 
-						EnrichedRequestData<Object> enrichedRequest = new EnrichedRequestData<>();
+						EnrichedRequestDTO<Object> enrichedRequest = new EnrichedRequestDTO<>();
 						enrichedRequest.setBody(requestData);
 						enrichedRequest.setPath(path);
 						enrichedRequest.setMethod(request.getMethod().name());

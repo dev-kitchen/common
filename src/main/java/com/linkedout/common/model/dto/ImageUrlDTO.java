@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HealthResponse {
-	private Boolean success;
-	private String message;
+public class ImageUrlDTO {
+	private String url;
 }
