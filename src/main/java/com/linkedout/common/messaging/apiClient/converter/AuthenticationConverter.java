@@ -1,4 +1,4 @@
-package com.linkedout.common.messaging.converter;
+package com.linkedout.common.messaging.apiClient.converter;
 
 import com.linkedout.common.model.dto.auth.AuthenticationDTO;
 import org.springframework.security.core.Authentication;

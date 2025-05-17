@@ -1,4 +1,4 @@
-package com.linkedout.common.messaging.converter;
+package com.linkedout.common.messaging.apiClient.converter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;

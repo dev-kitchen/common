@@ -1,8 +1,8 @@
-package com.linkedout.common.messaging.response;
+package com.linkedout.common.messaging.apiClient.response;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.linkedout.common.messaging.resolver.HttpStatusResolver;
+import com.linkedout.common.messaging.apiClient.resolver.HttpStatusResolver;
 import com.linkedout.common.model.dto.BaseApiResponse;
 import com.linkedout.common.model.dto.ServiceMessageDTO;
 import lombok.RequiredArgsConstructor;

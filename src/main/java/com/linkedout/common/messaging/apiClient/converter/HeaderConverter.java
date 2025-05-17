@@ -1,4 +1,4 @@
-package com.linkedout.common.messaging.converter;
+package com.linkedout.common.messaging.apiClient.converter;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;

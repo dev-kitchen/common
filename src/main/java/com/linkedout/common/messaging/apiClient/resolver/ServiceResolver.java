@@ -1,10 +1,10 @@
-package com.linkedout.common.messaging.resolver;
+package com.linkedout.common.messaging.apiClient.resolver;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceResolver {
-	
+
 	/**
 	 * 제공된 API 경로를 기반으로 대상 서비스를 판단합니다.
 	 *

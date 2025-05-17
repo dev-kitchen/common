@@ -1,13 +1,13 @@
-package com.linkedout.common.messaging.client;
+package com.linkedout.common.messaging.apiClient;
 
 import com.linkedout.common.constant.RabbitMQConstants;
 import com.linkedout.common.messaging.ServiceIdentifier;
-import com.linkedout.common.messaging.ServiceMessageResponseHandler;
-import com.linkedout.common.messaging.converter.AuthenticationConverter;
-import com.linkedout.common.messaging.converter.DataBufferConverter;
-import com.linkedout.common.messaging.converter.HeaderConverter;
-import com.linkedout.common.messaging.resolver.OperationResolver;
-import com.linkedout.common.messaging.resolver.ServiceResolver;
+import com.linkedout.common.messaging.MessageResponseHandler;
+import com.linkedout.common.messaging.apiClient.converter.AuthenticationConverter;
+import com.linkedout.common.messaging.apiClient.converter.DataBufferConverter;
+import com.linkedout.common.messaging.apiClient.converter.HeaderConverter;
+import com.linkedout.common.messaging.apiClient.resolver.OperationResolver;
+import com.linkedout.common.messaging.apiClient.resolver.ServiceResolver;
 import com.linkedout.common.model.dto.EnrichedRequestDTO;
 import com.linkedout.common.model.dto.ServiceMessageDTO;
 import com.linkedout.common.model.dto.auth.AuthenticationDTO;
@@ -31,11 +31,11 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ApiMessageRequestSender {
+public class ApiMessageSender {
 
 	private final RabbitTemplate rabbitTemplate;
 	private final JsonUtils jsonUtils;
-	private final ServiceMessageResponseHandler serviceMessageResponseHandler;
+	private final MessageResponseHandler messageResponseHandler;
 	private final ServiceIdentifier serviceIdentifier;
 	private final OperationResolver operationResolver;
 	private final ServiceResolver serviceResolver;
@@ -110,13 +110,13 @@ public class ApiMessageRequestSender {
 						enrichedRequest.setHeaders(headerConverter.toMap(request.getHeaders()));
 						enrichedRequest.setQueryParams(exchange.getRequest().getQueryParams().toSingleValueMap());
 
-						// 이제 payload 설정
+						// payload 설정
 						ServiceMessageDTO<Object> message = builder
 							.payload(enrichedRequest)
 							.build();
 
 						Mono<ServiceMessageDTO<?>> responseMono =
-							serviceMessageResponseHandler.awaitResponse(correlationId);
+							messageResponseHandler.awaitResponse(correlationId);
 
 						String routingKey = targetService + ".consumer.routing.key";
 

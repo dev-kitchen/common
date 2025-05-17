@@ -1,4 +1,4 @@
-package com.linkedout.common.messaging.resolver;
+package com.linkedout.common.messaging.apiClient.resolver;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

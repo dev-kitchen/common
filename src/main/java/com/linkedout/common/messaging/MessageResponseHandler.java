@@ -29,7 +29,7 @@ import java.util.UUID;
  */
 @Service
 @Slf4j
-public class ServiceMessageResponseHandler {
+public class MessageResponseHandler {
 
 	private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 	private final ReactiveRedisMessageListenerContainer listenerContainer;
@@ -49,7 +49,7 @@ public class ServiceMessageResponseHandler {
 	 * @param objectMapper          객체와 JSON 간 변환에 사용되는 매퍼
 	 * @param serviceIdentifier     큐 이름, 라우팅 키 등 서비스별 상세 정보를 제공하는 식별자
 	 */
-	public ServiceMessageResponseHandler(
+	public MessageResponseHandler(
 		ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
 		ReactiveRedisConnectionFactory connectionFactory,
 		ObjectMapper objectMapper,

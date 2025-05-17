@@ -1,13 +1,9 @@
-package com.linkedout.common.messaging.client;
+package com.linkedout.common.messaging.apiClient;
 
-import com.linkedout.common.messaging.ServiceIdentifier;
-import com.linkedout.common.messaging.ServiceMessageResponseHandler;
-import com.linkedout.common.messaging.response.ApiResponseFactory;
+import com.linkedout.common.messaging.apiClient.response.ApiResponseFactory;
 import com.linkedout.common.model.dto.BaseApiResponse;
-import com.linkedout.common.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -33,12 +29,7 @@ import java.util.concurrent.TimeoutException;
 @Component
 @RequiredArgsConstructor
 public class ApiMessageClient {
-
-	private final RabbitTemplate rabbitTemplate;
-	private final JsonUtils jsonUtils;
-	private final ServiceMessageResponseHandler serviceMessageResponseHandler;
-	private final ServiceIdentifier serviceIdentifier;
-	private final ApiMessageRequestSender requestSender;
+	private final ApiMessageSender requestSender;
 	private final ApiResponseFactory responseFactory;
 
 	/**

@@ -1,20 +1,10 @@
 package com.linkedout.common.config;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linkedout.common.exception.ErrorResponseBuilder;
 import com.linkedout.common.messaging.ServiceIdentifier;
-import com.linkedout.common.messaging.ServiceMessageClient;
-import com.linkedout.common.messaging.ServiceMessageResponseHandler;
-import com.linkedout.common.messaging.client.ApiMessageRequestSender;
-import com.linkedout.common.messaging.converter.AuthenticationConverter;
-import com.linkedout.common.messaging.converter.DataBufferConverter;
-import com.linkedout.common.messaging.converter.HeaderConverter;
-import com.linkedout.common.messaging.resolver.HttpStatusResolver;
-import com.linkedout.common.messaging.resolver.OperationResolver;
-import com.linkedout.common.messaging.resolver.ServiceResolver;
-import com.linkedout.common.messaging.response.ApiResponseFactory;
-import com.linkedout.common.model.dto.recipe.RecipeDTO;
+import com.linkedout.common.messaging.serviceClient.ServiceMessageClient;
+import com.linkedout.common.messaging.MessageResponseHandler;
 import com.linkedout.common.model.entity.Recipe;
 import com.linkedout.common.util.JsonUtils;
 import com.linkedout.common.util.converter.*;
@@ -84,12 +74,12 @@ public class AutoConfiguration {
 	 * @return 메시징 응답을 처리하도록 구성된 ServiceMessageResponseHandler 인스턴스
 	 */
 	@Bean
-	public ServiceMessageResponseHandler serviceMessageResponseHandler(
+	public MessageResponseHandler serviceMessageResponseHandler(
 		ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
 		ReactiveRedisConnectionFactory connectionFactory,
 		ObjectMapper objectMapper,
 		ServiceIdentifier serviceIdentifier) {
-		return new ServiceMessageResponseHandler(
+		return new MessageResponseHandler(
 			reactiveRedisTemplate, connectionFactory, objectMapper, serviceIdentifier);
 	}
 
@@ -98,20 +88,20 @@ public class AutoConfiguration {
 	 * 클라이언트는 메시지 응답을 처리하기 위해 ServiceMessageResponseHandler와 통합되며 메시지 라우팅 및 서비스 식별을 위해
 	 * ServiceIdentifier를 사용합니다.
 	 *
-	 * @param rabbitTemplate                RabbitMQ에 메시지를 보내는 데 사용되는 RabbitTemplate 인스턴스
-	 * @param objectMapper                  JSON 직렬화 및 역직렬화에 사용되는 ObjectMapper 인스턴스
-	 * @param serviceMessageResponseHandler 응답 채널을 관리하고 다른 서비스의 응답을 기다리는 핸들러
-	 * @param serviceIdentifier             서비스 이름 및 응답 라우팅 구성과 같은 현재 서비스에 대한 세부 정보를 제공하는 서비스 식별자
+	 * @param rabbitTemplate         RabbitMQ에 메시지를 보내는 데 사용되는 RabbitTemplate 인스턴스
+	 * @param objectMapper           JSON 직렬화 및 역직렬화에 사용되는 ObjectMapper 인스턴스
+	 * @param messageResponseHandler 응답 채널을 관리하고 다른 서비스의 응답을 기다리는 핸들러
+	 * @param serviceIdentifier      서비스 이름 및 응답 라우팅 구성과 같은 현재 서비스에 대한 세부 정보를 제공하는 서비스 식별자
 	 * @return 제공된 컴포넌트로 구성된 ServiceMessageClient 인스턴스
 	 */
 	@Bean
 	public ServiceMessageClient serviceMessageClient(
 		RabbitTemplate rabbitTemplate,
 		ObjectMapper objectMapper,
-		ServiceMessageResponseHandler serviceMessageResponseHandler,
+		MessageResponseHandler messageResponseHandler,
 		ServiceIdentifier serviceIdentifier) {
 		return new ServiceMessageClient(
-			rabbitTemplate, objectMapper, serviceMessageResponseHandler, serviceIdentifier);
+			rabbitTemplate, objectMapper, messageResponseHandler, serviceIdentifier);
 	}
 
 	@Bean

@@ -1,4 +1,4 @@
-package com.linkedout.common.messaging.resolver;
+package com.linkedout.common.messaging.apiClient.resolver;
 
 import com.linkedout.common.util.StringUtils;
 import org.springframework.stereotype.Component;

@@ -4,10 +4,9 @@ import java.util.List;
 
 public class StringUtils {
 
+	// 인스턴스화 방지
 	private StringUtils() {
-		// 인스턴스화 방지
 	}
-
 
 	/**
 	 * 문자열의 첫 번째 문자를 대문자로 변환하고 나머지 문자열은 그대로 유지합니다.
