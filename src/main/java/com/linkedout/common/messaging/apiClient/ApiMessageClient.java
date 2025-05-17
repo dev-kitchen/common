@@ -49,4 +49,20 @@ public class ApiMessageClient {
 				return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "서비스 응답 타임아웃"));
 			});
 	}
+
+	/**
+	 * 검증된 요청 본문을 사용하여 메시지를 전송하는 오버로드된 메서드입니다.
+	 *
+	 * @param exchange      현재 HTTP 요청과 응답 컨텍스트
+	 * @param validatedBody 이미 검증된 요청 본문 객체
+	 * @return 내부 서비스의 처리 결과
+	 */
+	public <T, R> Mono<ResponseEntity<BaseApiResponse<T>>> sendMessage(ServerWebExchange exchange, R validatedBody) {
+		return requestSender.prepareAndSendMessage(exchange, validatedBody)
+			.map(responseFactory::<T>createResponseEntity)
+			.onErrorResume(TimeoutException.class, e -> {
+				log.error("서비스 응답 타임아웃", e);
+				return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "서비스 응답 타임아웃"));
+			});
+	}
 }
